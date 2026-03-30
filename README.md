@@ -1,4 +1,6 @@
 Some wordings might be wrong, my initial draft was ass, so AI re-wrote my md file, gl guys
+PS: i found out im not the only one that has done similar research (but they actually publicized the file) https://github.com/efoh/Krunker-checker/ (and clearly automation), at least 5 online and proves that ALTCHA is so vulnerable
+ALTCHA solvers found online: https://github.com/0xagil/altcha-solver, https://github.com/coffee-git/altcha-solver, https://github.com/altcha-org/pow-v2-cpp-solver
 
 ---
 
