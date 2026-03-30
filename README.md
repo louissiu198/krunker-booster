@@ -241,12 +241,3 @@ For inquiries regarding this research or to request repository removal:
 ---
 
 *Last updated: 2026*
-
-## Contact
-
-For inquiries regarding this research or to request repository removal:
-- **Discord:** @louissiu
-
----
-
-*Last updated: 2026*
