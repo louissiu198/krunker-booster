@@ -1,3 +1,4 @@
+Some wordings might be wrong, my initial draft was ass, so AI re-wrote my md file, gl guys
 
 ---
 
