@@ -37,9 +37,8 @@ Recent spamming (yesterday) has affected my gaming personally and this is my sma
 
 ## Technical
 
-### PAT Token Generation
-
-The PAT (Ping Access Token) is generated client-side using the following algorithm:
+### PAT Token Generation 
+(this is just my guessing on how the server side generates, my first guess was dumb i thought it's client side)
 
 ```python
 import hashlib
@@ -49,39 +48,21 @@ import secrets
 import time
 
 def generate_pat_token(user_agent: str, ts: int = None) -> str:
-    """
-    Generate a PAT token for WebSocket authentication.
-    
-    Args:
-        user_agent: Browser/user-agent string
-        ts: Timestamp in milliseconds (optional, defaults to current time)
-    
-    Returns:
-        Base64-encoded payload + random hex suffix
-    """
     if not ts:
         ts = int(time.time() * 1000)
     
-    # Hash the user agent and take first 16 characters
     full_hash = hashlib.sha256(user_agent.encode()).hexdigest()
     ua_hash = full_hash[:16]
     
-    # Build payload
     payload = {
         "ts": ts,
         "ua": ua_hash
     }
+    js_str = json.dumps(payload, separators=(',', ':'))
+    enc = base64.b64encode(json_str.encode()).decode().rstrip('=')
+    rand_hex = secrets.token_hex(16)
     
-    # Create compact JSON without spaces
-    json_str = json.dumps(payload, separators=(',', ':'))
-    
-    # Base64 encode and remove trailing '=' padding
-    base64_part = base64.b64encode(json_str.encode()).decode().rstrip('=')
-    
-    # Generate random 32-character hex suffix
-    suffix = secrets.token_hex(16)
-    
-    return f"{base64_part}.{suffix}"
+    return f"{enc}.{rand_hex}"
 ```
 
 **Token Format:** `{base64_payload}.{random_hex}`
@@ -91,7 +72,7 @@ def generate_pat_token(user_agent: str, ts: int = None) -> str:
 **Important Notes:**
 - While the token *can* be generated manually, the server stores the `RAND_HEX` component for validation
 - The token is validated server-side; the `/ws/ping` endpoint must be called to obtain a valid token
-- The user-agent hash ensures tokens are somewhat bound to the client environment
+- The user-agent hash SHOULD ensure the user has the same user-agent as submitted to prevent someone re-using the token themselves
 
 ---
 
@@ -162,7 +143,8 @@ During analysis, the following behavioral anomalies were identified. These are d
 *SERVER FIXES*:
 - Encrypt XHR requests with a signature that signs each request, and ensure the signature runs through WebAssembly (WASM) to prevent token generation endpoints from being accessed programmatically. Currently, anyone can do what I've documented here
 - Implement WebSocket connections with fewer edge cases—bots that don't send `"q"` requests (simulating someone who never clicked "Enter Game") should not be able to AFK/bot through an entire match
-
+- Add TLS fingerprinting
+- Replace Hcaptcha instead with Altcha, their HSW.js is much more complicated, and the operational cost is higher for abusers
 ---
 
 ### Extended Connection Survivability
