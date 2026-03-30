@@ -14,8 +14,10 @@ Some wordings might be wrong, my initial draft was ass, so AI re-wrote my md fil
 ---
 
 ## Overview
-
 This research analyzes the security architecture, encryption methodologies, CAPTCHA implementations, and server-side regulations of the Krunker platform (covering both in-game and social components). The objective is to understand potential security implications from a defensive perspective.
+
+### Intent
+Recent spamming (yesterday) has affected my gaming personally and thats just my little suggestion or contribution on krunker to stop these behaviors from keep happening to the vibrant 2026 krunker, it should have a new fresh start that is free from botter/hacker/cheater/people who abuses
 
 ---
 
