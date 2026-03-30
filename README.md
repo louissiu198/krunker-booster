@@ -17,7 +17,7 @@ Some wordings might be wrong, my initial draft was ass, so AI re-wrote my md fil
 This research analyzes the security architecture, encryption methodologies, CAPTCHA implementations, and server-side regulations of the Krunker platform (covering both in-game and social components). The objective is to understand potential security implications from a defensive perspective.
 
 ### Intent
-Recent spamming (yesterday) has affected my gaming personally and thats just my little suggestion or contribution on krunker to stop these behaviors from keep happening to the vibrant 2026 krunker, it should have a new fresh start that is free from botter/hacker/cheater/people who abuses
+Recent spamming (yesterday) has affected my gaming personally and this is my small contribution to help stop these behaviors from continuing. The vibrant Krunker community in 2026 deserves a fresh start—one that is free from botters, hackers, cheaters, and those who abuse the system.
 
 ---
 
@@ -29,23 +29,81 @@ Recent spamming (yesterday) has affected my gaming personally and thats just my 
 |-----------|---------|---------------------|
 | **Global (ALTCHA)** | Hash-based solver using SHA-256 | Very vulnerable to brute-force attacks on salt values |
 | **Global (Rate Limiting)** | ALTCHA tied to IP-based request throttling | Standard rate-limiting implementation |
-| **In-Game Matchmaking** | XHR requests with no encryption or obfuscation | Minimal request validation; user-agent not required; IP only chcked in 1-2 endpoints |
+| **In-Game Matchmaking** | XHR requests with no encryption or obfuscation | Minimal request validation; user-agent not required; IP only checked on 1-2 endpoints |
 | **Social Components** | Heavily obfuscated JavaScript (index, social, class, config) | Can be reverse-engineered through dynamic analysis |
-| **WebSocket** | MessagePack serialization without that heavy obfuscation | Variable names (e.g., `k` for kill feed, `h` for health, `ai` for opponent positions) are exposed and easily identified |
+| **WebSocket** | MessagePack serialization without heavy obfuscation | Variable names (e.g., `k` for kill feed, `h` for health, `ai` for opponent positions) are exposed and easily identified |
 
 ---
 
 ## Technical
 
+### PAT Token Generation
+
+The PAT (Ping Access Token) is generated client-side using the following algorithm:
+
+```python
+import hashlib
+import json
+import base64
+import secrets
+import time
+
+def generate_pat_token(user_agent: str, ts: int = None) -> str:
+    """
+    Generate a PAT token for WebSocket authentication.
+    
+    Args:
+        user_agent: Browser/user-agent string
+        ts: Timestamp in milliseconds (optional, defaults to current time)
+    
+    Returns:
+        Base64-encoded payload + random hex suffix
+    """
+    if not ts:
+        ts = int(time.time() * 1000)
+    
+    # Hash the user agent and take first 16 characters
+    full_hash = hashlib.sha256(user_agent.encode()).hexdigest()
+    ua_hash = full_hash[:16]
+    
+    # Build payload
+    payload = {
+        "ts": ts,
+        "ua": ua_hash
+    }
+    
+    # Create compact JSON without spaces
+    json_str = json.dumps(payload, separators=(',', ':'))
+    
+    # Base64 encode and remove trailing '=' padding
+    base64_part = base64.b64encode(json_str.encode()).decode().rstrip('=')
+    
+    # Generate random 32-character hex suffix
+    suffix = secrets.token_hex(16)
+    
+    return f"{base64_part}.{suffix}"
+```
+
+**Token Format:** `{base64_payload}.{random_hex}`
+
+**Example:** `eyJ0cyI6MTc3NDg0MDkzNzIzMywidWEiOiJiMTdhNmQ1M2E3MWFiYjliIn0.16097882619c13a899dedc7a077fda48`
+
+**Important Notes:**
+- While the token *can* be generated manually, the server stores the `RAND_HEX` component for validation
+- The token is validated server-side; the `/ws/ping` endpoint must be called to obtain a valid token
+- The user-agent hash ensures tokens are somewhat bound to the client environment
+
+---
+
 ### WebSocket Connection Lifecycle
 
 **1. Maintaining Connection**
 - Send `patR` (ping access token) every 25 seconds (must be < 30,000ms interval)
-- Token format: `eyJ0cyI6MTc3NDg0MDkzNzIzMywidWEiOiJiMTdhNmQ1M2E3MWFiYjliIn0.16097882619c13a899dedc7a077fda48`
 - Connection string: `wss://{host}/ws?pat={pat_token}&at={login_token}` *(at_token optional)*
 
 **2. Guest Connection Flow**
-It can be easily turned into account by replacing AT token with a valid account
+> *Can be easily turned into account by replacing AT token with a valid account token*
+
 1. Fetch access token from `/ws/ping`
 2. Obtain validation token from `/generate-token`
 3. Retrieve game list from `/game-list`
@@ -96,22 +154,27 @@ During analysis, the following behavioral anomalies were identified. These are d
 - By omitting the expected frequency or presence of `"q"` messages, the server's version validation logic is bypassed
 - This suggests the version check is not performed at connection time, but rather after a certain threshold of client activity
 
-**Fixes**
-includes CHEAT FIX based on my other analysis, and SERVER FIX
-- [CHEAT FIX] enforce an official client that constantly checks if cheats being hooked into, and only allow those to play ranked
-- [SERVER FIX] encrypts the XHR requests slightly more, using a signature that signs each request, and make sure the signature runs through a wasm, so generate token and those shits cannot be accessed publicly. Current state is a random person can do this like me
-- [SERVER FIX] websocket connection that is lesser bugs, doesnt allow bot that doesnt "q" request (like clicked the enter game) to afk/bot through out the match
-  
+**Proposed Fixes**
+
+*CHEAT FIX* (based on my other analysis):
+- Enforce an official client that constantly checks for hooks/injections, and only allow verified clients to play ranked
+
+*SERVER FIXES*:
+- Encrypt XHR requests with a signature that signs each request, and ensure the signature runs through WebAssembly (WASM) to prevent token generation endpoints from being accessed programmatically. Currently, anyone can do what I've documented here
+- Implement WebSocket connections with fewer edge cases—bots that don't send `"q"` requests (simulating someone who never clicked "Enter Game") should not be able to AFK/bot through an entire match
+
+---
+
 ### Extended Connection Survivability
 
 | Issue | Description |
 |-------|-------------|
-| **Cross-Game Session Persistence** | A WebSocket connection established with minimal `"q"` (likely movement or position related) packet transmission can survive for the whole match until the 4 mins end. |
+| **Cross-Game Session Persistence** | A WebSocket connection established with minimal `"q"` (movement/position related) packet transmission can survive for the whole match until the 4-minute timer ends. |
 
-**Weird?:**
-- Under normal circumstances, any weird connections should terminate the user
-- I do not believe anyone is funky enough to spoof each msgpack counter 1 by 1.
-- (15, 1), (13, 2) this is good way to check if they are client or not (*this is out of my knowledge area, and I do not know if this is some library or connection framework which results  this)
+**Observations:**
+- Under normal circumstances, any "weird" connections should terminate the user
+- I do not believe anyone is determined enough to spoof each msgpack counter 1 by 1
+- The sequence pattern `(15, 1)`, `(13, 2)` appears to be a potential validation mechanism—this could be a good way to check if the client is legitimate (this is outside my knowledge area; I'm unsure if this comes from a specific library or connection framework)
 
 > **Note:** These findings are documented strictly for educational purposes to illustrate how client-server protocols can behave in non-standard states. They do not represent exploits or vulnerabilities, but rather edge cases in state management.
 
@@ -123,11 +186,9 @@ includes CHEAT FIX based on my other analysis, and SERVER FIX
 
 | Endpoint | Method | Description | Response |
 |----------|--------|-------------|---------|
-| `/ws/ping` | GET | Generate ping token | `{"token": "TOKEN.RAND_HEX", "expiresIn": 30000}` |
+| `/ws/ping` | GET | Generate PAT token | `{"token": "TOKEN.RAND_HEX", "expiresIn": 30000}` |
 | `/v1/auth/login` | POST | Guest authentication | `{"accessToken": "JWT", "refreshToken": "JWT", "frvrId": "uuid4"}` |
 | `/auth/login/username` | POST | Username/password login | `{"data": {"type": "login_ok", "login_token": "", "access_token": ""}}` |
-
-*Note: Ping tokens are server-validated; the `RAND_HEX` component is stored server-side, requiring endpoint calls for generation.*
 
 ---
 
@@ -190,6 +251,15 @@ This research was conducted in accordance with responsible disclosure principles
 **No live production systems were targeted or disrupted during this research.** All testing was performed in isolated, controlled environments.
 
 ---
+
+## Contact
+
+For inquiries regarding this research or to request repository removal:
+- **Discord:** @louissiu
+
+---
+
+*Last updated: 2026*
 
 ## Contact
 
