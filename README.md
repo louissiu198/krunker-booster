@@ -64,6 +64,17 @@ This research analyzes the security architecture, encryption methodologies, CAPT
    wss://{ws_host}/ws?gameId={game_id}&clientKey={client_id}&clientUID={frvr_id}&at={access_token}
    ```
 6. Perform initial handshake sequence (guest demonstration only)
+   ```[["load"], 1, 15],
+            [["sb", "welc", None], 3, 14],
+            [["po"], 5, 13],
+            [["v"], 0, 15], 
+            [["en", [0, 2482 + self.respawn_count, [-1, -1], -1, -1, 2, 0, 0, 1, -1, -1, 1, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 1, -1, -1, -1, 0, [None, -1], -1, -1, -1, 1], 16, 18, False, False, False, False, False, False, None, False, False], 9, 2],
+            [["q", 0, 0, "3333", 2, [0, -3142], {"0-4": -1, "0-5": 0, "0-6": 0, "0-7": 0, "0-8": 0, "0-9": 0, "0-10": 0, "0-11": 0, "0-12": 0, "0-13": 0, "0-14": 0}], 11, 1],
+            [["q", 0, 2, "3333", 2], 13, 0], # static movement 
+            [["q", 0, 4, "3333", 2], 14, 15],
+            [["q", 0, 6, "3310", 2], 6, 12],
+            [["q", 0, 8, "1719", 2], 8, 11],
+            [["q", 0, 10, "151617", 2], 10, 10],```
 
 ---
 
