@@ -58,11 +58,10 @@ def generate_pat_token(user_agent: str, ts: int = None) -> str:
         "ts": ts,
         "ua": ua_hash
     }
+
     js_str = json.dumps(payload, separators=(',', ':'))
     enc = base64.b64encode(json_str.encode()).decode().rstrip('=')
-    rand_hex = secrets.token_hex(16)
-    
-    return f"{enc}.{rand_hex}"
+    return f"{enc}.{secrets.token_hex(16)}"
 ```
 
 **Token Format:** `{base64_payload}.{random_hex}`
