@@ -78,6 +78,40 @@ This research analyzes the security architecture, encryption methodologies, CAPT
 
 ---
 
+## Bugs & Edge Cases
+
+During analysis, the following behavioral anomalies were identified. These are documented for educational understanding of how client-server state management can behave unexpectedly.
+
+### Version Mismatch Omission
+
+| Issue | Description |
+|-------|-------------|
+| **`VERSION_ISSUE` Visibility** | When establishing a WebSocket connection without sending sufficient `"q"` (movement/query) packets, the server fails to display the `VERSION_ISSUE` warning that would normally appear to mismatched clients. |
+
+**Technical Details:**
+- The `VERSION_ISSUE` state appears to be triggered conditionally based on client activity
+- By omitting the expected frequency or presence of `"q"` messages, the server's version validation logic is bypassed
+- This suggests the version check is not performed at connection time, but rather after a certain threshold of client activity
+
+### Extended Connection Survivability
+
+| Issue | Description |
+|-------|-------------|
+| **Cross-Game Session Persistence** | A WebSocket connection established with minimal `"q"` packet transmission can survive beyond a single match and persist into subsequent games. |
+
+**Technical Details:**
+- Under normal operation, connections typically terminate between matches
+- With reduced movement packet transmission, the connection state remains active across game boundaries
+- This indicates that connection lifecycle management is partially tied to client activity levels
+
+**Implications:**
+- Demonstrates that server-side state cleanup is activity-dependent
+- Suggests potential for understanding connection state machines through controlled packet omission
+
+> **Note:** These findings are documented strictly for educational purposes to illustrate how client-server protocols can behave in non-standard states. They do not represent exploits or vulnerabilities, but rather edge cases in state management.
+
+---
+
 ## API Endpoints
 
 ### Authentication
