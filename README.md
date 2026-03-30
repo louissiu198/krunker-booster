@@ -25,15 +25,15 @@ This research analyzes the security architecture, encryption methodologies, CAPT
 
 | Component | Finding | Security Implication |
 |-----------|---------|---------------------|
-| **Global (ALTCHA)** | Hash-based solver using SHA-256 | Theoretically vulnerable to brute-force attacks on salt values |
+| **Global (ALTCHA)** | Hash-based solver using SHA-256 | Very vulnerable to brute-force attacks on salt values |
 | **Global (Rate Limiting)** | ALTCHA tied to IP-based request throttling | Standard rate-limiting implementation |
-| **In-Game Matchmaking** | XHR requests with no encryption or obfuscation | Minimal request validation; user-agent not required |
+| **In-Game Matchmaking** | XHR requests with no encryption or obfuscation | Minimal request validation; user-agent not required; IP only chcked in 1-2 endpoints |
 | **Social Components** | Heavily obfuscated JavaScript (index, social, class, config) | Can be reverse-engineered through dynamic analysis |
-| **WebSocket Protocol** | MessagePack serialization without obfuscation | Variable names (e.g., `k` for kill feed, `h` for health, `ai` for opponent positions) are exposed |
+| **WebSocket** | MessagePack serialization without that heavy obfuscation | Variable names (e.g., `k` for kill feed, `h` for health, `ai` for opponent positions) are exposed and easily identified |
 
 ---
 
-## Technical Deep-Dive
+## Technical
 
 ### WebSocket Connection Lifecycle
 
@@ -43,6 +43,7 @@ This research analyzes the security architecture, encryption methodologies, CAPT
 - Connection string: `wss://{host}/ws?pat={pat_token}&at={login_token}` *(at_token optional)*
 
 **2. Guest Connection Flow**
+It can be easily turned into account by replacing AT token with a valid account
 1. Fetch access token from `/ws/ping`
 2. Obtain validation token from `/generate-token`
 3. Retrieve game list from `/game-list`
@@ -93,6 +94,12 @@ During analysis, the following behavioral anomalies were identified. These are d
 - By omitting the expected frequency or presence of `"q"` messages, the server's version validation logic is bypassed
 - This suggests the version check is not performed at connection time, but rather after a certain threshold of client activity
 
+**Fixes**
+includes CHEAT FIX based on my other analysis, and SERVER FIX
+- [CHEAT FIX] enforce an official client that constantly checks if cheats being hooked into, and only allow those to play ranked
+- [SERVER FIX] encrypts the XHR requests slightly more, using a signature that signs each request, and make sure the signature runs through a wasm, so generate token and those shits cannot be accessed publicly. Current state is a random person can do this like me
+- [SERVER FIX] websocket connection that is lesser bugs, doesnt allow bot that doesnt "q" request (like clicked the enter game) to afk/bot through out the match
+  
 ### Extended Connection Survivability
 
 | Issue | Description |
