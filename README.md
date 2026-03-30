@@ -1,3 +1,5 @@
+Here's a more professional version of your README.md with a proper disclaimer and improved formatting:
+
 ---
 
 # Krunker Unofficial API Analysis
