@@ -97,16 +97,12 @@ During analysis, the following behavioral anomalies were identified. These are d
 
 | Issue | Description |
 |-------|-------------|
-| **Cross-Game Session Persistence** | A WebSocket connection established with minimal `"q"` packet transmission can survive beyond a single match and persist into subsequent games. |
+| **Cross-Game Session Persistence** | A WebSocket connection established with minimal `"q"` (likely movement or position related) packet transmission can survive for the whole match until the 4 mins end. |
 
-**Technical Details:**
-- Under normal operation, connections typically terminate between matches
-- With reduced movement packet transmission, the connection state remains active across game boundaries
-- This indicates that connection lifecycle management is partially tied to client activity levels
-
-**Implications:**
-- Demonstrates that server-side state cleanup is activity-dependent
-- Suggests potential for understanding connection state machines through controlled packet omission
+**Weird?:**
+- Under normal circumstances, any weird connections should terminate the user
+- I do not believe anyone is funky enough to spoof each msgpack counter 1 by 1.
+- (15, 1), (13, 2) this is good way to check if they are client or not (*this is out of my knowledge area, and I do not know if this is some library or connection framework which results  this)
 
 > **Note:** These findings are documented strictly for educational purposes to illustrate how client-server protocols can behave in non-standard states. They do not represent exploits or vulnerabilities, but rather edge cases in state management.
 
