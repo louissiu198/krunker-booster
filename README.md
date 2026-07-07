@@ -1,9 +1,3 @@
-My bad, the placeholder paths were added but the standard Markdown layout didn't make it clear how they directly mapped to your files. Let's fix that so you can just copy-paste this straight into your repository.
-
-Here is the exact code with the image paths updated to use your actual screenshot file names. If you commit these images into the **same folder** as your `README.md` file, GitHub will automatically render them perfectly.
-
----
-
 # Krunker.io - Packet Wrapper & Protocol Reverse Engineering
 
 Reverse engineering analysis of `krunker.io`'s websocket protocol, binary MessagePack payload wrappers, and the rolling state counters used for client-side protection.
