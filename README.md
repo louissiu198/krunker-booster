@@ -1,4 +1,4 @@
-# Krunker Nukester - Demo & Walkthrough
+[# Krunker Nukester - Demo & Walkthrough
 A huge exploit of krunker.io in terms of networking, packet handling and server side protection.
 
 So we all know that krunker is a browser game with frontend powered by threejs and backend by some kind of typescript/javascript servers.
@@ -60,20 +60,30 @@ After the counter are wrapped, they look like this, 7/7/2026's version
 [['sb', 'welc', 'Username'], 0, 6],
 [['en', [0, 2482, [-1, -1], -1, -1, 2, 0, 0, 1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 1, -1, -1, -1, 0, [None, -1], -1, -1, -1, 1], 16, 18, False, False, False, False, False, False, None, False, False], 0, 9],
 We do not need to understand complex calculation behind this, just by observing 4-9 outcomes, we can see the pattern, x only adds 1 if y > 16 (which is 256 bits), and y adds 3 each time (both resets to 0 after it exceeds the maximum bit)
+class counter:
+    def __init__(self, x: int = 0, y: int = 3):
+        self.x = x
+        self.y = y
+    
+    def current(self):
+        c, v = self.x, self.y
+        next_y = (self.y + 3) % 16
+        if self.y + 3 >= 16:
+            self.x = (self.x + 1) % 16
+        self.y = next_y
+        return c, v
 
 the older version is much complex, 15/4/2026's version
 [['load'], 1, 3],
 [['sb', 'welc', 'Username'], 2, 6],
 [['en', [0, 2482, [-1, -1], -1, -1, 2, 0, 0, 1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 1, -1, -1, -1, 0, [None, -1], -1, -1, -1, 1], 16, 18, False, False, False, False, False, False, None, False, False], 3, 9],
-with some certain values it will skip, like after the value of [4, 15], you would think it would be [5, 2], however its [6, 2]
-```
+with some certain values it will skip, like after the value of [5, 15], you would think it would be [6, 2], however its [7, 2]
+
 py
 class counter:
-    def __init__(self, x: int = 0, y: int = 3):
+    def __init__(self, x: int = 1, y: int = 3):
         self.x = x
         self.y = y
-
-   
 
     def current(self):
         c, v = self.x, self.y
@@ -84,6 +94,7 @@ class counter:
             self.x = (self.x + 1) % 16
         self.y = next_y
         return c, v
-```
 
 
+
+](https://github.com/notemrovsky/tiktok-reverse-engineering)
