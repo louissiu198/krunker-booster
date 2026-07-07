@@ -42,4 +42,48 @@ Scroll through them to find important informations, make the request url has "kr
 }
 4. WS f"wss://{host}/ws?gameId={gid}&clientKey={ckey}&at={at}" 
 
+Now we know these 4 requests is the core of how a players joins a lobby, we will investigate further.
+=> websocket has a lot of messages between clients and user, and in msgpack format, the core content look like this
+['load'],
+['sb', 'welc', 'Username'],
+['en', [0, 2482, [-1, -1], -1, -1, 2, 0, 0, 1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 1, -1, -1, -1, 0, [None, -1], -1, -1, -1, 1], 16, 18, False, False, False, False, False, False, None, False, False],
+['q', 0, 0, '1233', 2, [0, -1571, 0, 1], {'0-4': -1, '0-5': 0, '0-6': 0, '0-7': 0, '0-8': 0, '0-9': 0, '0-10': 0, '0-11': 0, '0-12': 0, '0-13': 0, '0-14': 0}],
+['q', 0, 2, [7, 10, 3, 3, 5, 7], 0, [0, -1570, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
+
+Before their message it sent, they are further wrapped in the format  of [content, x, y] where x, y are krunker.io's boilerplate states (I call them as counters), which serves for 3 purposes.
+1. Deduplication so no extra packets are being sent to server
+2. Compression, enabling data like coordinates to be sent, making it more efficient, allowing more low spec computers to play
+3. [Important] Anti-cheat, most reverse engineers might only see the surface, might think randomly placing a number or keeping it static will make it work, which is why it's a big error. (each big krunker update also updates the counter)
+
+After the counter are wrapped, they look like this, 7/7/2026's version
+[['load'], 0, 3],
+[['sb', 'welc', 'Username'], 0, 6],
+[['en', [0, 2482, [-1, -1], -1, -1, 2, 0, 0, 1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 1, -1, -1, -1, 0, [None, -1], -1, -1, -1, 1], 16, 18, False, False, False, False, False, False, None, False, False], 0, 9],
+We do not need to understand complex calculation behind this, just by observing 4-9 outcomes, we can see the pattern, x only adds 1 if y > 16 (which is 256 bits), and y adds 3 each time (both resets to 0 after it exceeds the maximum bit)
+
+the older version is much complex, 15/4/2026's version
+[['load'], 1, 3],
+[['sb', 'welc', 'Username'], 2, 6],
+[['en', [0, 2482, [-1, -1], -1, -1, 2, 0, 0, 1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, 1, 1, 1, -1, -1, -1, 0, [None, -1], -1, -1, -1, 1], 16, 18, False, False, False, False, False, False, None, False, False], 3, 9],
+with some certain values it will skip, like after the value of [4, 15], you would think it would be [5, 2], however its [6, 2]
+```
+py
+class counter:
+    def __init__(self, x: int = 0, y: int = 3):
+        self.x = x
+        self.y = y
+
+   
+
+    def current(self):
+        c, v = self.x, self.y
+        next_y = (self.y + 3) % 16
+        if self.y + 3 >= 16:
+            self.x = (self.x + 2) % 16
+        else:
+            self.x = (self.x + 1) % 16
+        self.y = next_y
+        return c, v
+```
+
 
