@@ -1,4 +1,6 @@
-Here is a revised version. It strips out the overly polished "AI corporate/academic jargon" (like *telemetry, sequential pipelines, tracking engines, implementation variants*) and replaces it with the raw, direct, and slightly informal tone used by actual reverse engineers on GitHub.
+My bad, the placeholder paths were added but the standard Markdown layout didn't make it clear how they directly mapped to your files. Let's fix that so you can just copy-paste this straight into your repository.
+
+Here is the exact code with the image paths updated to use your actual screenshot file names. If you commit these images into the **same folder** as your `README.md` file, GitHub will automatically render them perfectly.
 
 ---
 
@@ -29,19 +31,23 @@ By replicating the client connection handshake, you can spin up automated bots o
 
 ## Network Request Types
 
-To see what the game is doing, open your browser's DevTools (`Ctrl + Shift + I`) and head to the **Network** tab. You only need to care about 3 types of data:
+To see what the game is doing, open your browser's DevTools (`Ctrl + Shift + I`) and head to the **Network** tab.
+
+When analyzing the initial page load and asset fetching loop, you only need to care about 3 types of data:
 
 | Type | Format / Methods | Purpose |
 | --- | --- | --- |
 | **XHR / Fetch** | `GET`, `POST` | Handles login authentication, matchmaker tokens, and fetching lobby details. |
 | **WS** | Binary MessagePack | Real-time game events (shooting, positions, player actions). |
-| **Files** | `.js`, `.json`, `.png` | Game scripts, assets, and engine files. |
+| **Files** | `.js`, `.json`, `.png`, `.obj` | Game scripts, asset meshes (`weapon_2.obj`, `melee_0.obj`), textures, and engine files. |
 
 ---
 
 ## The Connection Flow
 
-Before the game opens a WebSocket connection, it hits the matchmaker endpoints to get routing data. Filtering for `krunker.io` or `frvr.com` inside the XHR tab reveals the exact order:
+Before the game opens a WebSocket connection, it hits the matchmaker endpoints to get routing data. To filter out asset spam, toggle the **Fetch/XHR** option in DevTools:
+
+Filtering for `krunker.io` or `frvr.com` reveals the exact endpoint handshake sequence:
 
 ### 1. Authenticate Account
 
@@ -56,6 +62,8 @@ POST https://crucible.frvr.com/v1/auth/login
 GET https://matchmaker.krunker.io/generate-token
 
 ```
+
+Inspecting the request headers reveals the connection attributes and required CORS properties:
 
 * **Response Example:** `1783406272:n1jiX3/4vaKRN5U7Iu+1bGbgJhxK+oHougxqUTVHHh0=`
 
@@ -122,7 +130,7 @@ Once connected, data is sent as arrays serialized via MessagePack. A clean, raw 
 
 ## The State Counter (Anti-Cheat)
 
-Most people looking at Krunker's networking fail here: before messages are actually transmitted over the socket, they are wrapped in an envelope format: `[content, x, y]`.
+Before messages are actually transmitted over the socket, they are wrapped in an envelope format: `[content, x, y]`.
 
 `x` and `y` act as rolling validation counters. If you send static values or completely random numbers, the server will instantly disconnect you for bad packet sequence states.
 
@@ -172,10 +180,11 @@ class LegacyCounter:
 
 ## How to Debug & Log Packets
 
-If they push an update that changes the increments, open the DevTools console and hook the WebSocket prototype to dump incoming/outgoing arrays. This makes it easy to spot the mathematical pattern visually:
+If they push an update that changes the increments, open the DevTools **Console** tab to hook the protocol wrapper.
+
+Paste this snippet in the console prompt before joining a game to dump incoming/outgoing arrays directly. This makes it easy to spot the mathematical pattern visually:
 
 ```javascript
-// Paste this in DevTools console before joining a game
 const nativeSend = WebSocket.prototype.send;
 WebSocket.prototype.send = function(data) {
     console.log("Outbound Packet Frame:", data);
