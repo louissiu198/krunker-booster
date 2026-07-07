@@ -172,20 +172,7 @@ class LegacyCounter:
 
 ---
 
-## How to Debug & Log Packets
 
-If they push an update that changes the increments, open the DevTools **Console** tab to hook the protocol wrapper.
-
-Paste this snippet in the console prompt before joining a game to dump incoming/outgoing arrays directly. This makes it easy to spot the mathematical pattern visually:
-
-```javascript
-const nativeSend = WebSocket.prototype.send;
-WebSocket.prototype.send = function(data) {
-    console.log("Outbound Packet Frame:", data);
-    return nativeSend.apply(this, arguments);
-};
-
-```
 
 ---
 
