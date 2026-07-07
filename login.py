@@ -6,47 +6,13 @@ import random
 from uuid import uuid4
 from httpx import post
 
-def generate_realistic_mouse_data():
-    mouse_data = []
-    start_time = 0
-    
-    for i in range(60):
-        time_offset = i * 12 + random.randint(-3, 3)
-        
-        if i < 10:
-            x = random.randint(100, 400)
-            y = random.randint(100, 400)
-        elif i < 30:
-            x = random.randint(200, 1700)
-            y = random.randint(200, 900)
-        else:
-            x = random.randint(300, 600)
-            y = random.randint(300, 500)
-        
-        x += random.randint(-20, 20)
-        y += random.randint(-20, 20)
-        
-        mouse_data.append([time_offset, x, y])
-    
+def generate_realistic_mouse_data(): # removed from preview
     return mouse_data
 
-def generate_realistic_key_data():
-    key_data = []
-    
-    key_events = [
-        (0, 1), (50, 0), (80, 1), (130, 0), (160, 1),
-        (210, 0), (240, 1), (290, 0), (320, 1), (370, 0),
-        (400, 1), (450, 0), (480, 1), (530, 0), (560, 1),
-        (610, 0), (640, 1), (690, 0), (720, 1), (770, 0)
-    ]
-    
-    for time_offset, key_state in key_events:
-        time_offset += random.randint(-5, 5)
-        key_data.append([time_offset, key_state])
-    
+def generate_realistic_key_data(): # removed from preview
     return key_data
 
-def generate_payload(nonce):
+def generate_payload(nonce): # removed from preview
     if not nonce:
         return None
     
@@ -60,15 +26,8 @@ def generate_payload(nonce):
     
     start_time = int(time.time() * 1000)
     data['t'] = int((time.time() * 1000) - start_time) + random.randint(100, 500)
-    
-    json_str = json.dumps(data, separators=(',', ':'))
-    json_bytes = json_str.encode('utf-8')
-    
     compressed = gzip.compress(json_bytes, compresslevel=9)
-    
     b64 = base64.b64encode(compressed).decode('utf-8')
-    payload = b64.replace('+', '-').replace('/', '_').replace('=', '')
-    
     return payload
 # 3 functions above are full AI made, translated through source code, "a" token encryption
 
