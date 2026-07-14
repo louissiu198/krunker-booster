@@ -126,7 +126,7 @@ Once connected, data is sent as arrays serialized via MessagePack. A clean, raw 
 ## The State Counter (Anti-Cheat)
 
 Before messages are actually transmitted over the socket, they are wrapped in an envelope format: `[content, x, y]`.
-
+socket handling, compression, validation
 `x` and `y` act as rolling validation counters. If you send static values or completely random numbers, the server will instantly disconnect you for bad packet sequence states.
 
 ### Current Logic
