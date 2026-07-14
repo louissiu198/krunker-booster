@@ -1,4 +1,4 @@
-# 100 stars i drop a portable / web version of this shit out public / no cost to run at all (AI wrote this repo, i just ask it to explain, if ur technical guys ignore this bs)
+# 100 stars i drop a portable / web version of this shit out public / no cost to run at all (AI wrote this repo, i just ask it to explain to dummies, if you know all this ignore this bs)
 # Krunker.io - Packet Wrapper & Protocol Reverse Engineering
 **swuffy** contributed to the route.py => intercepting a full 4 min websocket send packets
 Reverse engineering analysis of `krunker.io`'s websocket protocol, binary MessagePack payload wrappers, and the rolling state counters used for client-side protection.
